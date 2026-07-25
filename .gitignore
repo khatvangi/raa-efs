@@ -1,0 +1,30 @@
+# structures and sequences (archived on Zenodo, not in git)
+*.pdb
+*.cif
+*.mmcif
+*.fasta
+*.fa
+
+# large binary / model artifacts
+*.pt
+*.pth
+*.npy
+*.npz
+*.h5
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+env/
+
+# office / build artifacts
+*.docx
+*.bak_*
+*.backup_*
+
+# os
+.DS_Store
+Thumbs.db
