@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "efs"
+version = "0.1.0"
+description = "Essential Folding Score: where a protein sequence can and cannot be compressed"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Hannah Ribbeck" },
+    { name = "Boggavarapu Kiran", email = "kiran@mcneese.edu" },
+]
+keywords = [
+    "protein folding",
+    "reduced amino acid alphabet",
+    "structural core",
+    "protein design",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "biopython>=1.79",
+    "numpy>=1.21",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.urls]
+Source = "https://github.com/khatvangi/raa-efs"
+Data = "https://doi.org/10.5281/zenodo.21560978"
+
+[project.scripts]
+efs = "efs.cli:main"
+
+[tool.setuptools]
+packages = ["efs"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,68 +1,159 @@
-# raa-efs — Essential Folding Score for position-specific amino acid alphabet reduction
+# efs — Essential Folding Score
 
-Analysis code, figures, and result tables for:
+A per-residue score, computed from a structure alone, that identifies the
+positions where a protein sequence cannot be written in a reduced amino acid
+alphabet without losing the fold. It needs no alignment, no language model
+and no training, so it can be computed before any sequence is modified and
+applied to a family it has never seen.
 
-**A five-letter amino acid alphabet suffices for protein folding when chemistry is preserved at
-structurally critical positions**
-Hannah Ribbeck and Boggavarapu Kiran, Department of Chemistry and Physics, McNeese State University.
+Reduced-alphabet work has, for thirty years, applied one mapping uniformly to
+every position and asked how few letters a protein can be written in. The
+answer turns out to depend less on how far the alphabet is compressed than on
+where the compression falls: five letters suffice almost everywhere, and fail
+at roughly a quarter of positions. This package computes that quarter and
+performs the reduction.
 
-## What this repository contains
+## Install
 
-| Directory | Contents |
-|-----------|----------|
-| `code/` | Canonical alphabet definitions and all analysis scripts (reduction, scoring, controls, visualization) |
-| `figure_scripts/` | Scripts that regenerate every main and supplementary figure |
-| `figures/` | Rendered figures (PNG + PDF) |
-| `manuscript/` | Manuscript and Supplementary Information (Markdown source) |
-| `results/` | Analysis-ready result tables (CSV) that reproduce every number in the paper |
+    pip install -e .
 
-The large primary data (reduced sequences, ~1,000s of predicted PDB structures, per-residue EFS scores,
-ThermoMPNN ΔΔG tables) are archived separately on Zenodo: **[DATA_DOI — Zenodo deposit to be inserted]**.
+Requires Python 3.9 or later, Biopython and NumPy. DSSP is optional and off
+by default.
 
-## Core method: the Essential Folding Score (EFS)
+## Use
 
-`code/CANONICAL_ALPHABETS.py` is the single source of truth for all six reduced alphabets
-(RAA5, RAA7, RAA8, RAA9, RAA10, RAA13) and the EFS definition. Run it directly to execute the
-self-test (validates the strict hierarchical refinement RAA7 ⊂ RAA8 ⊂ RAA9 ⊂ RAA10 ⊂ RAA13):
+    from efs import score_structure, reduce_by_efs, random_control_matching
 
-```bash
-python code/CANONICAL_ALPHABETS.py
-```
+    scored = score_structure("kinase.pdb")
+    scored.core_fraction(threshold=20)        # ~0.26 for a typical kinase
 
-EFS scores each residue by burial (SASA), contact density, and chemistry (bonuses for buried
-hydrophobics, cysteines, and buried aromatics). Positions with EFS ≥ 20 are the structural core.
+    variant = reduce_by_efs(scored, "RAA5", threshold=20)
+    variant.sequence
+    variant.percent_identity_to_native
 
-## Key result tables (`results/`)
+    control = random_control_matching(scored, "RAA5", seed=1)
 
-| File | What it holds |
-|------|---------------|
-| `raa89_cliff_summary.csv` | High-resolution blind-reduction cliff curve, per family (Table 1, 2, Fig 1) |
-| `efs_C20_summary.csv` | EFS-guided reduction at C20, per family × alphabet (Table 3, Supp S3) |
-| `blind_vs_efs_RAA5.csv` | Blind vs EFS-guided RAA5, per family (Fig 3) |
-| `efs_by_family_cutoff_alphabet.csv` | Full threshold × alphabet × family sweep (Supp S2) |
-| `auxiliary_experiments_summary.csv` | Chemistry inversion + chemistry-axis + controls (Tables 5, Supp S4/S5) |
-| `RAA_MASTER_RESULTS.csv` | Consolidated per-variant TM-scores |
+`random_control_matching` preserves the same *number* of positions as the EFS
+core for that protein but chooses them at random. Report it alongside any
+position-specific result. Preserving a quarter of positions necessarily moves
+a variant closer to its native sequence, which on its own can improve a
+structure prediction; the rescue is attributable to *which* positions were
+protected only if the size-matched random draw does worse. `percent_identity_
+to_native` quantifies the same confound directly, and is always at least the
+preserved fraction because a reduced position whose native residue is its own
+group representative is unchanged too.
 
-## Reproducing the figures
+From the command line:
 
-```bash
-pip install biopython pandas numpy matplotlib seaborn
-python figure_scripts/fig_raa89_cliff_curve.py   # etc.
-```
+    efs score     structure.pdb --summary          # per-residue TSV
+    efs reduce    structure.pdb --alphabet RAA5    # EFS-guided FASTA
+    efs reduce    structure.pdb --blind            # uniform reduction
+    efs control   structure.pdb --seed 1 2 3       # matched random controls
+    efs alphabets                                  # alphabets and true sizes
+    efs identify  reduced.fasta native.fasta       # which alphabet made this
 
-## Pipeline overview
+## The score
 
-1. `code/run_blind_all_alphabets.py` — blind (uniform) reduction of a FASTA to all six alphabets
-2. `code/generate_efs_vs_sasa_reductions.py` — EFS-core vs SASA-core position-specific reductions
-3. Fold reduced sequences with ESMFold (via the TRILL pipeline)
-4. `code/score_reductions.py`, `code/score_efs_vs_sasa.py` — US-align scoring vs native
-5. `figure_scripts/` — figures from the scored tables
+Each residue accumulates points for burial (SASA below 20 Å² scores 3, below
+40 Å² scores 1), packing (8 or more Cα neighbours within 8 Å scores 2, 5 to 7
+scores 1), a buried hydrophobic bonus of 2, a cysteine bonus of 2 awarded
+regardless of burial because an exposed cysteine may still hold a disulfide,
+and a buried aromatic bonus of 1. The sum is multiplied by 4. Positions
+scoring 20 or above are the core by default.
 
-## Citation
+Every threshold is a field on `ScoringProfile` rather than a constant in the
+code, so the score can be recalibrated — for membrane proteins, where burial
+means something else — without editing the module.
 
-If you use this code or the EFS definition, please cite the paper (in preparation) and the Zenodo data
-deposit.
+The maximum attainable score is computed from the profile rather than
+asserted, and it is 32 under the published parameters: the cysteine bonus and
+the hydrophobic-plus-aromatic route are mutually exclusive, so the ceiling is
+lower than adding every bonus suggests. A core threshold above that ceiling
+raises instead of returning an empty set, because an empty core produces a
+sequence byte-identical to a uniform reduction, and a uniform reduction
+labelled as core-preserving is invisible in the output. The published C40
+condition is exactly that: a cutoff of 40 against a ceiling of 32, selecting
+nothing in all 627 proteins.
 
-## License
+Two profiles ship. `PUBLISHED` is the default and reproduces the deposited
+dataset exactly. `METHODS_AS_WRITTEN` implements the Methods text of the
+accompanying manuscript literally. They differ in two places: the original
+implementation counts proline in the hydrophobic set and histidine in the
+aromatic set, and the Methods text does not. The profiles therefore disagree
+only at buried proline and buried histidine positions. `tools/validate_
+against_published.py` re-runs the arithmetic against the stored SASA and
+contact columns of the deposited per-residue files and reports which profile
+reproduces them.
 
-MIT (code). Data on Zenodo under CC-BY-4.0.
+## Alphabets
+
+`efs alphabets` prints every alphabet with the number of distinct groups it
+actually produces, which is checked at import time against the number its
+name claims. That check exists because this project got it wrong: the
+mapping recorded as "RAA10" has eleven groups and the one recorded as "RAA13"
+has nineteen. They are available here under their true names, `RAA11` and
+`RAA19`, with the old names kept as aliases so older scripts and filenames
+still resolve.
+
+The largest alphabet is worse than misnamed: the code that generated the
+deposited sequences keeps lysine, arginine and histidine in separate groups,
+giving nineteen, while Supplementary Table S1 prints them merged, giving
+seventeen. The sequences settle it in favour of nineteen. The printed variant
+is kept as `RAA17_AS_PRINTED` so the discrepancy is expressible in code; no
+deposited sequence was generated with it.
+
+`RAA7` through `RAA19` form a strict hierarchical refinement — every group at
+size *n* is contained in a group at size *n*−1 — which is what allows a
+difference in folding outcome between adjacent alphabets to be attributed to
+the single distinction introduced at that step. The test suite checks this
+property rather than trusting the comment. `RAA5` is a separate coarser
+partition and is *not* the parent of `RAA7`: alanine sits with the large
+hydrophobics in one and with glycine in the other.
+
+`RAA10_AG_MERGED` and `RAA10_POLAR_MERGED` are the two genuine ten-letter
+alphabets lying strictly between `RAA9` and `RAA11`. The step from eleven
+letters to nine merges two things at once, alanine with glycine and the
+hydroxyl class with the amide class; these two alphabets each merge one, so
+the loss can be apportioned between them.
+
+A second generation of alphabets exists in this project's history under the
+same names and with different partitions — alanine with threonine and
+histidine, cysteine inside the hydrophobic class, the basic residues merged
+with the polars, and, at size 7, cysteine mapped to aspartate. They are kept
+as `LEGACY_5` and `LEGACY_7`, marked deprecated, so that results generated
+before the canonical set existed can be reproduced and, more importantly,
+identified. The canonical and legacy five-letter alphabets emit disjoint
+letter sets (`LGSDK` against `LAGEQ`), so a reduced sequence of unknown
+provenance can be traced to the mapping that produced it:
+
+    efs identify old_results.fasta natives.fasta
+
+Do not generate new results with the legacy mappings.
+
+## Tests
+
+    pip install -e ".[test]"
+    pytest
+
+The suite checks the scoring arithmetic band by band, the hierarchical
+refinement property, the per-protein size matching of the random control, and
+that a misnamed alphabet is rejected at construction rather than propagating
+into a figure.
+
+## Citing
+
+Ribbeck, H. & Kiran, B. Position-specific alphabet reduction: a
+structure-based score identifies where the protein code cannot be compressed.
+Data at https://doi.org/10.5281/zenodo.21560978.
+
+## Earlier contents of this repository
+
+Until October 2026 this repository held the v5-era analysis scripts, result
+tables and a manuscript draft that was withdrawn. That state is preserved at
+the tag `v5-analysis` for provenance. Its README claimed that
+`code/CANONICAL_ALPHABETS.py` was the single source of truth for all six
+alphabets and that every published number reproduced from the deposited
+tables; neither was true, because the legacy mappings that generated several
+of those values were never deposited. Those mappings are available here as
+`LEGACY_5` and `LEGACY_7`, and `efs identify` traces a sequence of unknown
+provenance to the mapping that produced it.
