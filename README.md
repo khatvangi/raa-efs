@@ -144,7 +144,7 @@ into a figure.
 
 Ribbeck, H. & Kiran, B. Position-specific alphabet reduction: a
 structure-based score identifies where the protein code cannot be compressed.
-Data at https://doi.org/10.5281/zenodo.21560978.
+Data at https://doi.org/10.5281/zenodo.21560977.
 
 ## Earlier contents of this repository
 
