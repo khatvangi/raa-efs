@@ -28,7 +28,7 @@ try:  # pragma: no cover - exercised only when Biopython is absent
     from Bio.Data import IUPACData
 except ImportError as exc:  # pragma: no cover
     raise ImportError(
-        "efs requires Biopython; install it with `pip install biopython`"
+        "raa-efs requires Biopython; install it with `pip install biopython`"
     ) from exc
 
 

@@ -2,7 +2,7 @@
 
 Typical use::
 
-    from efs import score_structure, reduce_by_efs
+    from raa_efs import score_structure, reduce_by_efs
 
     scored = score_structure("1ake.pdb")
     variant = reduce_by_efs(scored, "RAA5", threshold=20)
@@ -10,7 +10,7 @@ Typical use::
 
 and, for the control that makes that result interpretable::
 
-    from efs import random_control_matching
+    from raa_efs import random_control_matching
 
     control = random_control_matching(scored, "RAA5", seed=1)
 """
@@ -50,7 +50,7 @@ from .score import (
     score_structure,
 )
 
-__version__ = "0.1.0"
+__version__ = "2.0.0"
 
 __all__ = [
     "ALIASES",

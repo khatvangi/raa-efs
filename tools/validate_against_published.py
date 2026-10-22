@@ -27,7 +27,7 @@ from typing import Dict, Iterable, List, Sequence, Tuple
 
 sys.path.insert(0, __file__.rsplit("/tools/", 1)[0])
 
-from efs.score import PROFILES, raw_score  # noqa: E402
+from raa_efs.score import PROFILES, raw_score  # noqa: E402
 
 REQUIRED_COLUMNS = {"aa", "sasa", "contacts", "raw_score"}
 

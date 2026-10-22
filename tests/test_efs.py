@@ -1,4 +1,4 @@
-"""Tests for the efs package.
+"""Tests for the raa-efs package.
 
 The scoring tests are written against the arithmetic rather than against
 stored outputs, so they check that the implementation does what it claims
@@ -12,8 +12,8 @@ import re
 
 import pytest
 
-from efs import alphabets, reduce as reduce_mod, score as score_mod
-from efs.alphabets import AlphabetError, STANDARD_AA
+from raa_efs import alphabets, reduce as reduce_mod, score as score_mod
+from raa_efs.alphabets import AlphabetError, STANDARD_AA
 
 
 # --------------------------------------------------------------------------
@@ -446,7 +446,7 @@ def test_summarise_reports_one_row_per_reduction(straight_chain):
 
 
 def _run_cli(argv):
-    from efs.cli import build_parser
+    from raa_efs.cli import build_parser
 
     out, err = io.StringIO(), io.StringIO()
     args = build_parser().parse_args(argv)

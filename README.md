@@ -15,14 +15,14 @@ performs the reduction.
 
 ## Install
 
-    pip install -e .
+    pip install -e .   # installs raa-efs, import raa_efs
 
 Requires Python 3.9 or later, Biopython and NumPy. DSSP is optional and off
 by default.
 
 ## Use
 
-    from efs import score_structure, reduce_by_efs, random_control_matching
+    from raa_efs import score_structure, reduce_by_efs, random_control_matching
 
     scored = score_structure("kinase.pdb")
     scored.core_fraction(threshold=20)        # ~0.26 for a typical kinase
@@ -45,12 +45,12 @@ group representative is unchanged too.
 
 From the command line:
 
-    efs score     structure.pdb --summary          # per-residue TSV
-    efs reduce    structure.pdb --alphabet RAA5    # EFS-guided FASTA
-    efs reduce    structure.pdb --blind            # uniform reduction
-    efs control   structure.pdb --seed 1 2 3       # matched random controls
-    efs alphabets                                  # alphabets and true sizes
-    efs identify  reduced.fasta native.fasta       # which alphabet made this
+    raa-efs score     structure.pdb --summary          # per-residue TSV
+    raa-efs reduce    structure.pdb --alphabet RAA5    # EFS-guided FASTA
+    raa-efs reduce    structure.pdb --blind            # uniform reduction
+    raa-efs control   structure.pdb --seed 1 2 3       # matched random controls
+    raa-efs alphabets                                  # alphabets and true sizes
+    raa-efs identify  reduced.fasta native.fasta       # which alphabet made this
 
 ## The score
 
@@ -87,7 +87,7 @@ reproduces them.
 
 ## Alphabets
 
-`efs alphabets` prints every alphabet with the number of distinct groups it
+`raa-efs alphabets` prints every alphabet with the number of distinct groups it
 actually produces, which is checked at import time against the number its
 name claims. That check exists because this project got it wrong: the
 mapping recorded as "RAA10" has eleven groups and the one recorded as "RAA13"
@@ -126,7 +126,7 @@ identified. The canonical and legacy five-letter alphabets emit disjoint
 letter sets (`LGSDK` against `LAGEQ`), so a reduced sequence of unknown
 provenance can be traced to the mapping that produced it:
 
-    efs identify old_results.fasta natives.fasta
+    raa-efs identify old_results.fasta natives.fasta
 
 Do not generate new results with the legacy mappings.
 
@@ -155,5 +155,5 @@ the tag `v5-analysis` for provenance. Its README claimed that
 alphabets and that every published number reproduced from the deposited
 tables; neither was true, because the legacy mappings that generated several
 of those values were never deposited. Those mappings are available here as
-`LEGACY_5` and `LEGACY_7`, and `efs identify` traces a sequence of unknown
+`LEGACY_5` and `LEGACY_7`, and `raa-efs identify` traces a sequence of unknown
 provenance to the mapping that produced it.

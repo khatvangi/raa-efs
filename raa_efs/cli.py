@@ -1,10 +1,10 @@
 """Command-line interface for the Essential Folding Score.
 
-    efs score      STRUCTURE...              per-residue scores as TSV or CSV
-    efs reduce     STRUCTURE...              reduced sequences as FASTA
-    efs control    STRUCTURE...              size-matched random control FASTA
-    efs alphabets                            list alphabets and true sizes
-    efs identify   REDUCED.fasta NATIVE.fasta   which alphabet produced a file
+    raa-efs score      STRUCTURE...              per-residue scores as TSV or CSV
+    raa-efs reduce     STRUCTURE...              reduced sequences as FASTA
+    raa-efs control    STRUCTURE...              size-matched random control FASTA
+    raa-efs alphabets                            list alphabets and true sizes
+    raa-efs identify   REDUCED.fasta NATIVE.fasta   which alphabet produced a file
 """
 
 from __future__ import annotations
@@ -222,13 +222,13 @@ def cmd_identify(args: argparse.Namespace, stdout: TextIO, stderr: TextIO) -> in
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="efs",
+        prog="raa-efs",
         description=(
             "Essential Folding Score: per-residue structural criticality, and "
             "position-specific reduced-alphabet sequences derived from it."
         ),
     )
-    parser.add_argument("--version", action="version", version=f"efs {__version__}")
+    parser.add_argument("--version", action="version", version=f"raa-efs {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     def add_scoring_options(p: argparse.ArgumentParser) -> None:
@@ -264,7 +264,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_reduce = sub.add_parser("reduce", help="write reduced sequences as FASTA")
     add_scoring_options(p_reduce)
-    p_reduce.add_argument("--alphabet", default="RAA5", help="alphabet name (see `efs alphabets`)")
+    p_reduce.add_argument("--alphabet", default="RAA5", help="alphabet name (see `raa-efs alphabets`)")
     p_reduce.add_argument(
         "--blind",
         action="store_true",

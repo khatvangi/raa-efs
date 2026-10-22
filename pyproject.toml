@@ -3,8 +3,8 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "efs"
-version = "0.1.0"
+name = "raa-efs"
+version = "2.0.0"
 description = "Essential Folding Score: where a protein sequence can and cannot be compressed"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -37,10 +37,10 @@ Source = "https://github.com/khatvangi/raa-efs"
 Data = "https://doi.org/10.5281/zenodo.21560977"
 
 [project.scripts]
-efs = "efs.cli:main"
+raa-efs = "raa_efs.cli:main"
 
 [tool.setuptools]
-packages = ["efs"]
+packages = ["raa_efs"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
